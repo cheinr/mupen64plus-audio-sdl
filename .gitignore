@@ -1,3 +1,4 @@
 /projects/unix/_obj*/
 /projects/unix/mupen64plus-audio-sdl*.so
+/projects/unix/*.a
 *.wasm

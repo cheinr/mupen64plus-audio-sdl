@@ -45,6 +45,14 @@ size_t ResampleAndMix(void* resampler, const struct resampler_interface* iresamp
         const void* src, size_t src_size, unsigned int src_freq,
         void* dst, size_t dst_size, unsigned int dst_freq);
 
+
+void DebugMessageAudio(int level, const char *message, ...) ATTR_FMT(2,3);
+
+#if (EMSCRIPTEN) // TODO m64p static plugins
+
+#define DebugMessage DebugMessageAudio;
+
+#else
 /* declarations of pointers to Core config functions */
 extern ptr_ConfigListSections     ConfigListSections;
 extern ptr_ConfigOpenSection      ConfigOpenSection;
@@ -62,5 +70,7 @@ extern ptr_ConfigGetParamFloat    ConfigGetParamFloat;
 extern ptr_ConfigGetParamBool     ConfigGetParamBool;
 extern ptr_ConfigGetParamString   ConfigGetParamString;
 
-void DebugMessage(int level, const char *message, ...) ATTR_FMT(2,3);
+
+
+#endif
 

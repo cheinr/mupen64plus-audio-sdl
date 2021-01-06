@@ -22,13 +22,22 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.          *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+#ifdef M64P_STATIC_PLUGINS
+#include "audio_static.h"
+#define M64P_CORE_PROTOTYPES 1
+#endif
+
 #include <SDL.h>
 #include <SDL_audio.h>
 #include <stdio.h>
 #include <stdarg.h>
 
 #include "main.h"
+
+#ifndef M64P_STATIC_PLUGINS
 #include "osal_dynamiclib.h"
+#endif
+
 #include "sdl_backend.h"
 #include "volume.h"
 #include "resamplers/resamplers.h"
@@ -106,6 +115,8 @@ static int VolIsMuted = 0;
 //which type of volume control to use
 static int VolumeControlType = VOLUME_TYPE_SDL;
 
+
+#ifndef M64P_STATIC_PLUGINS
 /* definitions of pointers to Core config functions */
 ptr_ConfigOpenSection      ConfigOpenSection = NULL;
 ptr_ConfigDeleteSection    ConfigDeleteSection = NULL;
@@ -121,8 +132,10 @@ ptr_ConfigGetParamFloat    ConfigGetParamFloat = NULL;
 ptr_ConfigGetParamBool     ConfigGetParamBool = NULL;
 ptr_ConfigGetParamString   ConfigGetParamString = NULL;
 
+#endif
+
 /* Global functions */
-void DebugMessage(int level, const char *message, ...)
+void DebugMessageAudio(int level, const char *message, ...)
 {
   char msgbuf[1024];
   va_list args;
@@ -147,7 +160,13 @@ void on_audioresource_acquired(audioresource_t *audioresource, bool acquired, vo
 #endif
 
 /* Mupen64Plus plugin functions */
-EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreLibHandle, void *Context,
+EXPORT m64p_error CALL
+#if M64P_STATIC_PLUGINS
+PluginStartupAudio
+#else
+PluginStartup
+#endif
+(m64p_dynlib_handle CoreLibHandle, void *Context,
                                    void (*DebugCallback)(void *, int, const char *))
 {
     ptr_CoreGetAPIVersions CoreAPIVersionFunc;
@@ -162,8 +181,15 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreLibHandle, void *Con
     l_DebugCallback = DebugCallback;
     l_DebugCallContext = Context;
 
+
+#if (!M64P_STATIC_PLUGINS)
     /* attach and call the CoreGetAPIVersions function, check Config API version for compatibility */
     CoreAPIVersionFunc = (ptr_CoreGetAPIVersions) osal_dynlib_getproc(CoreLibHandle, "CoreGetAPIVersions");
+
+#else
+	CoreAPIVersionFunc = &CoreGetAPIVersions;
+#endif
+        
     if (CoreAPIVersionFunc == NULL)
     {
         DebugMessage(M64MSG_ERROR, "Core emulator broken; no CoreAPIVersionFunc() function found.");
@@ -178,6 +204,8 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreLibHandle, void *Con
         return M64ERR_INCOMPATIBLE;
     }
 
+#if (!M64P_STATIC_PLUGINS)
+    
     /* Get the core config function pointers from the library handle */
     ConfigOpenSection = (ptr_ConfigOpenSection) osal_dynlib_getproc(CoreLibHandle, "ConfigOpenSection");
     ConfigDeleteSection = (ptr_ConfigDeleteSection) osal_dynlib_getproc(CoreLibHandle, "ConfigDeleteSection");
@@ -196,6 +224,8 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreLibHandle, void *Con
         !ConfigSetDefaultInt || !ConfigSetDefaultFloat || !ConfigSetDefaultBool || !ConfigSetDefaultString ||
         !ConfigGetParamInt   || !ConfigGetParamFloat   || !ConfigGetParamBool   || !ConfigGetParamString)
         return M64ERR_INCOMPATIBLE;
+
+#endif
 
     /* get a configuration section handle */
     if (ConfigOpenSection("Audio-SDL", &l_ConfigAudio) != M64ERR_SUCCESS)
@@ -256,7 +286,13 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreLibHandle, void *Con
     return M64ERR_SUCCESS;
 }
 
-EXPORT m64p_error CALL PluginShutdown(void)
+EXPORT m64p_error CALL
+#if M64P_STATIC_PLUGINS
+PluginShutdownAudio
+#else
+PluginShutdown
+#endif
+(void)
 {
     if (!l_PluginInit)
         return M64ERR_NOT_INIT;
@@ -274,7 +310,14 @@ EXPORT m64p_error CALL PluginShutdown(void)
     return M64ERR_SUCCESS;
 }
 
-EXPORT m64p_error CALL PluginGetVersion(m64p_plugin_type *PluginType, int *PluginVersion, int *APIVersion, const char **PluginNamePtr, int *Capabilities)
+
+EXPORT m64p_error CALL
+#if M64P_STATIC_PLUGINS
+PluginGetVersionAudio
+#else
+PluginGetVersion
+#endif
+(m64p_plugin_type *PluginType, int *PluginVersion, int *APIVersion, const char **PluginNamePtr, int *Capabilities)
 {
     /* set version info */
     if (PluginType != NULL)
@@ -350,7 +393,13 @@ EXPORT int CALL InitiateAudio(AUDIO_INFO Audio_Info)
     return 1;
 }
 
-EXPORT int CALL RomOpen(void)
+EXPORT int CALL
+#if M64P_STATIC_PLUGINS
+RomOpenAudio
+#else
+RomOpen
+#endif
+(void)
 {
     if (!l_PluginInit || l_sdl_backend != NULL)
         return 0;
@@ -364,7 +413,13 @@ EXPORT int CALL RomOpen(void)
     return 1;
 }
 
-EXPORT void CALL RomClosed(void)
+EXPORT void CALL
+#if M64P_STATIC_PLUGINS
+RomClosedAudio
+#else
+RomClosed
+#endif
+(void)
 {
     if (!l_PluginInit)
         return;
