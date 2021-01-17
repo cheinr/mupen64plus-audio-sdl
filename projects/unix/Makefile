@@ -304,10 +304,12 @@ SOURCE = \
 	$(SRCDIR)/resamplers/resamplers.c \
 	$(SRCDIR)/resamplers/trivial.c
 
-ifeq ($(OS),MINGW)
-SOURCE += $(SRCDIR)/osal_dynamiclib_win32.c
-else
-SOURCE += #$(SRCDIR)/osal_dynamiclib_unix.c
+ifneq ($(M64P_STATIC_PLUGINS), 1)
+  ifeq ($(OS),MINGW)
+	SOURCE += $(SRCDIR)/osal_dynamiclib_win32.c
+  else
+	SOURCE += $(SRCDIR)/osal_dynamiclib_unix.c
+  endif
 endif
 
 ifneq ($(NO_SPEEX), 1)

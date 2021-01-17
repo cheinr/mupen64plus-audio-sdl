@@ -48,11 +48,11 @@ size_t ResampleAndMix(void* resampler, const struct resampler_interface* iresamp
 
 void DebugMessageAudio(int level, const char *message, ...) ATTR_FMT(2,3);
 
-#if (EMSCRIPTEN) // TODO m64p static plugins
+
 
 #define DebugMessage DebugMessageAudio;
 
-#else
+#if (!M64P_STATIC_PLUGINS)
 /* declarations of pointers to Core config functions */
 extern ptr_ConfigListSections     ConfigListSections;
 extern ptr_ConfigOpenSection      ConfigOpenSection;
