@@ -266,7 +266,7 @@ endif
 endif
 
 # set base program pointers and flags
-CC        = $(CROSS_COMPILE)gcc
+CC        ?= $(CROSS_COMPILE)gcc
 AR        = ar
 RM       ?= rm -f
 INSTALL  ?= install
