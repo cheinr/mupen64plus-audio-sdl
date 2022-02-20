@@ -357,6 +357,7 @@ targets:
 
 
 all: $(TARGET) $(TARGET_STATIC)
+static: $(TARGET_STATIC)
 
 install: $(TARGET)
 	$(INSTALL) -d "$(DESTDIR)$(PLUGINDIR)"
