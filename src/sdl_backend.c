@@ -23,6 +23,10 @@
 #define M64P_CORE_PROTOTYPES 1
 #endif
 
+#if EMSCRIPTEN
+#include "emscripten.h"
+#endif
+
 #include <SDL.h>
 #include <SDL_audio.h>
 #include <stdlib.h>
@@ -157,6 +161,12 @@ static void sdl_init_audio_device(struct sdl_backend* sdl_backend)
 
         SDL_PauseAudio(1);
         SDL_CloseAudio();
+
+#if EMSCRIPTEN
+        // Yielding to the event loop here seems to prevent some use-after-free
+        // errors that occur when we reinitialize audio.
+        emscripten_sleep(10);
+#endif
     }
     else
     {
